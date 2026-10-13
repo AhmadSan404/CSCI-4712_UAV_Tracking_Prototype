@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+*.pyc
+
+# generated / large files
+logs/
+last_settings.json
+models/*
+!models/.gitkeep
+videos/*
+!videos/.gitkeep
