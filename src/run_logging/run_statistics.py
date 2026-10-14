@@ -1,5 +1,4 @@
 """Running statistics for one run. Nothing here stores every detection, only counts, sums and extremes."""
-
 import math
 
 SLOWEST_FRAME_FRACTION = 0.01  # the "1% low" looks at the slowest 1% of frame intervals
@@ -18,7 +17,7 @@ class RunningStatistics:
         self.minimum = math.inf
         self.maximum = -math.inf
 
-    def add(self, value: float) -> None:
+    def add(self, value:float) -> None:
         """Includes one more value."""
         self.count += 1
         self._total += value
@@ -30,7 +29,7 @@ class RunningStatistics:
         """Average of all values, or 0.0 if there are none."""
         return self._total / self.count if self.count else 0.0
 
-    def to_dict(self, digits: int = 3) -> dict:
+    def to_dict(self, digits:int=3) -> dict:
         """Count, mean, min and max as a JSON-friendly dict."""
         if not self.count:
             return {"count": 0, "mean": None, "min": None, "max": None}
@@ -41,7 +40,6 @@ class RunningStatistics:
             "max": round(self.maximum, digits),
         }
 
-
 class FrameTimingStatistics:
     """Frame intervals (wall-clock time between displayed frames) and per-frame work time."""
 
@@ -50,7 +48,7 @@ class FrameTimingStatistics:
         self._intervals_seconds: list[float] = []
         self._work_seconds = RunningStatistics()
 
-    def add_frame(self, interval_seconds: float | None, work_seconds: float) -> None:
+    def add_frame(self, interval_seconds:float|None, work_seconds:float) -> None:
         """Records a displayed frame. The interval is None for the first frame after a pause or restart."""
         self.frames_displayed += 1
         self._work_seconds.add(work_seconds)
@@ -88,7 +86,6 @@ class FrameTimingStatistics:
             "processing_capacity_fps": round(self.capacity_fps, 2),
         }
 
-
 class DetectionStatistics:
     """Detection pass timing and per-class confidence."""
 
@@ -101,7 +98,7 @@ class DetectionStatistics:
         """Number of detection passes run."""
         return self._detect_ms.count
 
-    def add_pass(self, detect_ms: float, detections: list[tuple[str, float]]) -> None:
+    def add_pass(self, detect_ms:float, detections:list[tuple[str,float]]) -> None:
         """Records one detection pass with its (class name, confidence) results."""
         self._detect_ms.add(detect_ms)
         for class_name, confidence in detections:
@@ -116,11 +113,10 @@ class DetectionStatistics:
             "confidence_by_class": {name: stats.to_dict() for name, stats in self._confidence_by_class.items()},
         }
 
-
 class TrackingStatistics:
     """How the tracker and the target behaved: tracks created, target matched or coasting, target changes, cuts."""
 
-    def __init__(self, frame_seconds: float) -> None:
+    def __init__(self, frame_seconds:float) -> None:
         self._frame_seconds = frame_seconds
         self._seen_track_ids: set[int] = set()
         self.event_counts: dict[str, int] = {}
@@ -131,7 +127,7 @@ class TrackingStatistics:
         self.longest_coasting_seconds = 0.0
         self._current_coasting_frames = 0
 
-    def add_frame(self, track_ids: list[int], target_state: str | None, is_target_locked: bool) -> None:
+    def add_frame(self, track_ids:list[int], target_state:str|None, is_target_locked:bool) -> None:
         """Records one displayed frame: the track IDs present and the target's state (None if no target)."""
         self._seen_track_ids.update(track_ids)
         if target_state == TARGET_STATE_TRACKING:
@@ -152,7 +148,7 @@ class TrackingStatistics:
         else:
             self._current_coasting_frames = 0
 
-    def add_event(self, event: str) -> None:
+    def add_event(self, event:str) -> None:
         """Counts one event such as 'target_changed' or 'scene_cut'."""
         self.event_counts[event] = self.event_counts.get(event, 0) + 1
 

@@ -1,5 +1,4 @@
 """Trails: the recent path of each tracked car, kept pinned to the ground as the camera moves."""
-
 from collections import deque
 
 import numpy as np
@@ -18,7 +17,7 @@ class Trails:
     old points with each frame's camera warp keeps them on the ground, so a trail shows the path actually driven.
     """
 
-    def __init__(self, video_fps: float) -> None:
+    def __init__(self, video_fps:float) -> None:
         self._max_points = round(TRAIL_SECONDS * video_fps)
         self._forget_after_frames = round(FORGET_SECONDS * video_fps)
         self._points_by_track: dict[int, deque] = {}
@@ -29,7 +28,7 @@ class Trails:
         self._points_by_track.clear()
         self._frames_unseen_by_track.clear()
 
-    def update(self, tracks: list[Track], camera_warp: np.ndarray | None) -> None:
+    def update(self, tracks:list[Track], camera_warp:np.ndarray|None) -> None:
         """Moves the old points with the camera, then adds the center of every matched track.
 
         Coasting tracks add no point. Trails unseen for too long are deleted.
@@ -54,7 +53,7 @@ class Trails:
             if self._frames_unseen_by_track[track_id] > self._forget_after_frames:
                 del self._points_by_track[track_id], self._frames_unseen_by_track[track_id]
 
-    def get_points(self, track_id: int) -> np.ndarray | None:
+    def get_points(self, track_id:int) -> np.ndarray | None:
         """The trail of one track as an (N, 2) array, oldest first, or None if there is too little to draw."""
         points = self._points_by_track.get(track_id)
         if points is None or len(points) < MIN_POINTS_TO_DRAW:

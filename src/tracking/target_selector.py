@@ -31,7 +31,7 @@ class TargetSelector:
         self.target_id: int | None = None
         self.is_locked = False
 
-    def lock(self, track_id: int) -> None:
+    def lock(self, track_id:int) -> None:
         """Locks the target onto a track chosen by the user."""
         self.target_id = track_id
         self.is_locked = True
@@ -41,7 +41,7 @@ class TargetSelector:
         self.target_id = None
         self.is_locked = False
 
-    def update(self, tracks: list[Track], frame_shape: tuple[int, ...]) -> int | None:
+    def update(self, tracks:list[Track], frame_shape:tuple[int, ...]) -> int | None:
         """Returns the current target ID, choosing a new one automatically if the old target is gone."""
         if self.target_id is not None and any(track.track_id == self.target_id for track in tracks):
             return self.target_id
@@ -57,7 +57,7 @@ class TargetSelector:
         return self.target_id
 
     @staticmethod
-    def _score_prominence(track: Track, frame_width: int, frame_height: int) -> float:
+    def _score_prominence(track:Track, frame_width:int, frame_height:int) -> float:
         """Scores (0 to 1) how likely a track is to be the car the drone is following."""
         center_x, center_y = track.center
         half_width, half_height = frame_width / 2, frame_height / 2

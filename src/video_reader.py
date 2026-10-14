@@ -1,5 +1,4 @@
 """Background-thread video decoding, so reading frames overlaps with running the model."""
-
 import queue
 import threading
 import time
@@ -29,7 +28,7 @@ class VideoReader:
         frame_count: Total number of frames (0 if unknown).
     """
 
-    def __init__(self, source: str, is_live: bool = False) -> None:
+    def __init__(self, source:str, is_live:bool=False) -> None:
         """Opens the source and starts decoding.
 
         Args:
@@ -60,7 +59,7 @@ class VideoReader:
         self._start_decoder()
 
     @staticmethod
-    def _open_camera(camera_name: str) -> cv2.VideoCapture:
+    def _open_camera(camera_name:str) -> cv2.VideoCapture:
         """Opens a camera by name, asking for a full-HD picture.
 
         Raises:
@@ -132,7 +131,7 @@ class VideoReader:
         except queue.Empty:
             pass
 
-    def _decode_loop(self, stop_event: threading.Event) -> None:
+    def _decode_loop(self, stop_event:threading.Event) -> None:
         """Worker loop: reads frames and queues them until the video ends or a stop is requested."""
         frame_index = int(self._capture.get(cv2.CAP_PROP_POS_FRAMES))
         while not stop_event.is_set():
@@ -143,7 +142,7 @@ class VideoReader:
                 return
             frame_index += 1
 
-    def _put_unless_stopped(self, item: tuple[int, np.ndarray] | None, stop_event: threading.Event) -> None:
+    def _put_unless_stopped(self, item:tuple[int, np.ndarray] | None, stop_event:threading.Event) -> None:
         """Queues an item, waiting while the queue is full, but giving up if a stop is requested."""
         while not stop_event.is_set():
             try:
@@ -152,7 +151,7 @@ class VideoReader:
             except queue.Full:
                 pass
 
-    def _live_loop(self, stop_event: threading.Event) -> None:
+    def _live_loop(self, stop_event:threading.Event) -> None:
         """Worker loop for a camera: keeps only the newest frame, and ends when no frame arrives for a while."""
         frame_index = 0
         last_frame_time = time.perf_counter()
@@ -168,7 +167,7 @@ class VideoReader:
             else:
                 time.sleep(QUEUE_TIMEOUT_SECONDS)  # a failed read can return at once, so do not spin
 
-    def _replace_queued_frame(self, item: tuple[int, np.ndarray] | None) -> None:
+    def _replace_queued_frame(self, item:tuple[int, np.ndarray] | None) -> None:
         """Drops the frame still waiting in the live queue (if any) and queues this one instead."""
         self._empty_queue()
         self._frame_queue.put_nowait(item)

@@ -5,9 +5,10 @@ from pathlib import Path
 
 from src.detection.model_catalog import ModelChoice
 from src.detection.vehicle_types import VEHICLE_ONLY_CLASSES
-from src.menu.tracker_settings import NO_AERIAL_MODEL, TrackerSettings
+from src.menu.tracker_settings import NO_MODEL, TrackerSettings
 from src.project_paths import VIDEO_EXTENSIONS, VIDEOS_DIR
 
+NO_MAIN_LABEL = "None (use only the aerial model)"
 NO_AERIAL_LABEL = "None (use only the main model)"
 PREFERRED_CAMERA_TEXT = "OBS"  # with no saved camera, the first one whose name contains this is selected
 OTHER_VIDEO_LABEL = "Other..."  # the last video dropdown entry: the video is then chosen with the text box / Browse
@@ -49,10 +50,10 @@ class MenuVariables:
         self.source_type.set(settings.source_type)
         self._apply_video(settings.video_path)
         self.camera_name.set(self._pick_camera(settings.camera_name))
-        self.main_model_label.set(self._find_label(settings.main_model_name, defaults.main_model_name, self.main_choices))
+        self.main_model_label.set(self._find_label(settings.main_model_name, defaults.main_model_name, self.main_choices, NO_MAIN_LABEL))
         self.main_image_size_px.set(settings.main_image_size_px)
         self.aerial_model_label.set(
-            self._find_label(settings.aerial_model_name, defaults.aerial_model_name, self.aerial_choices)
+            self._find_label(settings.aerial_model_name, defaults.aerial_model_name, self.aerial_choices, NO_AERIAL_LABEL)
         )
         self.aerial_image_size_px.set(settings.aerial_image_size_px)
         self.min_confidence.set(settings.min_confidence)
@@ -114,10 +115,10 @@ class MenuVariables:
         return str(VIDEOS_DIR / choice)
 
     @staticmethod
-    def _find_label(model_name: str, fallback_name: str, choices: list[ModelChoice]) -> str:
+    def _find_label(model_name: str, fallback_name: str, choices: list[ModelChoice], none_label: str) -> str:
         """The dropdown label for a model file name (or for 'none'), else the fallback model's, else the first."""
-        if model_name == NO_AERIAL_MODEL:
-            return NO_AERIAL_LABEL
+        if model_name == NO_MODEL:
+            return none_label
         for wanted_name in (model_name, fallback_name):
             for choice in choices:
                 if choice.file_name == wanted_name:
@@ -126,7 +127,7 @@ class MenuVariables:
 
     @staticmethod
     def _find_file_name(label: str, choices: list[ModelChoice]) -> str:
-        """The model file name for a dropdown label ('none' for the no-aerial entry)."""
-        if label == NO_AERIAL_LABEL:
-            return NO_AERIAL_MODEL
+        """The model file name for a dropdown label ('none' for either 'None' entry)."""
+        if label in (NO_MAIN_LABEL, NO_AERIAL_LABEL):
+            return NO_MODEL
         return next(choice.file_name for choice in choices if choice.label == label)

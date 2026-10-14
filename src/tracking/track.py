@@ -1,5 +1,4 @@
 """A tracked vehicle in one frame."""
-
 from dataclasses import dataclass
 
 import numpy as np
@@ -18,7 +17,6 @@ class Track:
         coasting_frames: Frames the track has gone without a matching detection (0 while it is matched). While
             coasting, the box is the motion model's prediction.
     """
-
     track_id: int
     box: np.ndarray
     confidence: float

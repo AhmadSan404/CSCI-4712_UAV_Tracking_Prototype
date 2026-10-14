@@ -27,7 +27,7 @@ The defaults are the ones that were tuned on the sample footage. If you are unsu
 | Source | Video file | **Video file** plays a file; **Live stream** reads a camera such as OBS Virtual Camera |
 | Video | last used, or first in `videos/` | dropdown of every video in `videos/`, plus **Other...**. Choosing Other enables the path box and **Browse...** so you can pick a video from anywhere on the PC |
 | Camera | last used, else the first OBS camera | the camera to read in Live stream mode. **Scan cameras** refreshes the list (e.g. after starting OBS) |
-| Main model / size | `yolo26m.pt` / 960 | COCO model: good on low and oblique views. Lists detection models only |
+| Main model / size | `yolo26m.pt` / 960 | COCO model: good on low and oblique views. Lists detection models only. Choose "None" to run only the aerial model (no bus, motorcycle or people, since the aerial model lacks those classes) |
 | Aerial model / size | `yolo26m-obb.pt` / 1280 | Lists OBB models only. DOTA aerial model: good on cars seen from straight above. Choose "None" to run only the main model (faster, misses more top-down cars) |
 | Confidence floor | 0.10 | low on purpose: the tracker applies its own stricter thresholds and uses weak detections to keep tracks alive |
 | Classes | all four | car, truck, bus, motorcycle |
@@ -153,6 +153,6 @@ the run ends. The log is written even if the run crashes.
 
 ## Tips
 
-- Slow? Set the Aerial model to "None", or lower the model sizes. Cars seen from straight above may be missed.
+- Slow? Run one model instead of two, or lower the model sizes. For straight-down footage, setting the Main model to "None" usually keeps most cars; setting the Aerial model to "None" misses cars seen from straight above.
 - Cars missed in a particular clip? Try lowering the confidence floor (0.05) or raising the model sizes.
 - Models are stored in `models/`; copy any Ultralytics detection or OBB `.pt` file there and it appears in the menu.

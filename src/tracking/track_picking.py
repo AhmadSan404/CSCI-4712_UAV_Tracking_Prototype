@@ -6,7 +6,7 @@ CLICK_MIN_PADDING_PX = 12.0  # extra clickable margin around a box, so tiny top-
 CLICK_PADDING_FRACTION = 0.15  # or this share of the box's longest side, whichever is larger
 
 
-def find_track_at_point(tracks: list[Track], x: float, y: float) -> Track | None:
+def find_track_at_point(tracks:list[Track], x:float, y:float) -> Track | None:
     """Finds the track under a click, preferring the smallest box when several overlap."""
     hits = []
     for track in tracks:
@@ -18,7 +18,7 @@ def find_track_at_point(tracks: list[Track], x: float, y: float) -> Track | None
     return min(hits, key=lambda hit: hit[0])[1] if hits else None
 
 
-def find_next_track(tracks: list[Track], current_track_id: int | None) -> Track | None:
+def find_next_track(tracks:list[Track], current_track_id:int|None) -> Track | None:
     """The next track left to right after the current one, wrapping around (Tab key). Coasting tracks are skipped."""
     candidates = sorted((track for track in tracks if not track.is_coasting), key=lambda track: track.center[0])
     if not candidates:

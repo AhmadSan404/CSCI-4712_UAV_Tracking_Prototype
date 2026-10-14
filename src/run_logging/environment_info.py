@@ -1,5 +1,4 @@
 """Facts about the machine and libraries a run happened on."""
-
 import platform
 import sys
 
@@ -24,7 +23,7 @@ class EnvironmentInfo:
         return platform.processor() or "unknown"
 
     @staticmethod
-    def collect(device_name: str, precision: str, total_vram_mb: float | None) -> dict:
+    def collect(device_name:str, precision:str, total_vram_mb:float | None) -> dict:
         """Gathers the environment as a JSON-friendly dict. torch and ultralytics are imported only here."""
         import cv2
         import torch

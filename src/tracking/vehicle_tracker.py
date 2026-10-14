@@ -1,5 +1,4 @@
 """Multi-object tracking with BoT-SORT, using camera motion that we measure ourselves."""
-
 import numpy as np
 from ultralytics.engine.results import Boxes
 from ultralytics.trackers.bot_sort import BOTSORT
@@ -36,11 +35,11 @@ class BotSortWithCameraMotion(BOTSORT):
         camera_warp: The 2x3 transform to apply on the next `update` (None for no compensation).
     """
 
-    def __init__(self, settings: IterableSimpleNamespace) -> None:
+    def __init__(self, settings:IterableSimpleNamespace) -> None:
         super().__init__(settings)
         self.camera_warp: np.ndarray | None = None
 
-    def _pre_first_associate(self, strack_pool: list, unconfirmed: list, image: object, results_high: object) -> None:
+    def _pre_first_associate(self, strack_pool:list, unconfirmed:list, image:object, results_high:object) -> None:
         """Moves the existing tracks by the camera warp before they are matched against new detections."""
         if self.camera_warp is not None:
             multi_gmc(strack_pool, self.camera_warp)
@@ -50,12 +49,12 @@ class BotSortWithCameraMotion(BOTSORT):
 class VehicleTracker:
     """Follows every vehicle from frame to frame, keeping each one's ID."""
 
-    def __init__(self, video_fps: float) -> None:
+    def __init__(self, video_fps:float) -> None:
         settings = {**BOTSORT_SETTINGS, "track_buffer": max(1, round(TRACK_MEMORY_SECONDS * video_fps))}
         self._botsort = BotSortWithCameraMotion(IterableSimpleNamespace(**settings))
         self._coasting_frame_limit = max(1, round(COASTING_SECONDS * video_fps))
 
-    def update(self, detections: np.ndarray, frame_shape: tuple[int, ...], camera_warp: np.ndarray | None) -> list[Track]:
+    def update(self, detections:np.ndarray, frame_shape:tuple[int, ...], camera_warp:np.ndarray|None) -> list[Track]:
         """Advances the tracker by one frame.
 
         Args:

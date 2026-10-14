@@ -29,7 +29,7 @@ class VehicleDetector:
 
     def __init__(
         self,
-        main_weights: str,
+        main_weights: str | None,
         main_image_size: int,
         aerial_weights: str | None,
         aerial_image_size: int,
@@ -40,6 +40,7 @@ class VehicleDetector:
         """Loads the models.
 
         Args:
+            main_weights: Weights for the COCO model, or None to use only the aerial model.
             aerial_weights: Weights for the top-down model, or None to use only the main model.
             device_choice: 'auto', 'cpu' or 'gpu'.
 
@@ -59,9 +60,11 @@ class VehicleDetector:
             torch.backends.cudnn.benchmark = True  # the input size is fixed for the whole run, so pick kernels once
 
         self.min_confidence = min_confidence
-        self.models = [YoloModel(main_weights, main_image_size, self.device, vehicle_classes)]
-        if aerial_weights:
-            self.models.append(YoloModel(aerial_weights, aerial_image_size, self.device, vehicle_classes))
+        self.models = [
+            YoloModel(weights, image_size, self.device, vehicle_classes)
+            for weights, image_size in ((main_weights, main_image_size), (aerial_weights, aerial_image_size))
+            if weights
+        ]
         self.last_detect_ms = 0.0
         self._vram = VramMonitor(self.device)
 

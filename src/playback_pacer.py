@@ -1,5 +1,4 @@
 """Real-time pacing and frame-interval measurement for playback."""
-
 import time
 
 LATE_FRAME_TOLERANCE_SECONDS = 0.1  # if processing falls this far behind real time, stop trying to catch up
@@ -8,7 +7,7 @@ LATE_FRAME_TOLERANCE_SECONDS = 0.1  # if processing falls this far behind real t
 class PlaybackPacer:
     """Sleeps so frames appear at the video's frame rate, and measures the time between shown frames."""
 
-    def __init__(self, video_fps: float) -> None:
+    def __init__(self, video_fps:float) -> None:
         self._frame_seconds = 1.0 / video_fps
         self._next_frame_due: float | None = None
         self._previous_shown_time: float | None = None

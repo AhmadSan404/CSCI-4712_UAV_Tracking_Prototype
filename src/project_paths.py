@@ -1,5 +1,4 @@
 """Folder and file locations used across the project."""
-
 from pathlib import Path
 
 # This file lives in <project>/src/, so the project folder is one level up.

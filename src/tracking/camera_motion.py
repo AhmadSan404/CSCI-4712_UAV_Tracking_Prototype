@@ -8,7 +8,6 @@ RANSAC. The tracker uses the resulting warp to predict where cars should be, and
 The same measurements spot hard cuts: the color histogram jumps, or the motion-compensated previous frame no longer
 looks like the current one.
 """
-
 from dataclasses import dataclass
 
 import cv2
@@ -38,7 +37,6 @@ def identity_warp() -> np.ndarray:
     """The 2x3 transform that moves nothing."""
     return np.eye(2, 3, dtype=np.float64)
 
-
 @dataclass
 class MotionResult:
     """Camera motion for one frame.
@@ -48,14 +46,11 @@ class MotionResult:
             identity on the first frame and on cuts.
         is_cut: True when this frame starts a new shot.
     """
-
-    warp: np.ndarray
-    is_cut: bool
-
+    warp:np.ndarray
+    is_cut:bool
 
 class CameraMotion:
     """Estimates how the camera moved between consecutive frames."""
-
     def __init__(self) -> None:
         self._feature_params = dict(
             maxCorners=MAX_FEATURES,
@@ -71,7 +66,7 @@ class CameraMotion:
         self._previous_points: np.ndarray | None = None
         self._previous_histogram: np.ndarray | None = None
 
-    def update(self, frame: np.ndarray, vehicle_boxes: np.ndarray | None = None) -> MotionResult:
+    def update(self, frame:np.ndarray, vehicle_boxes:np.ndarray | None=None) -> MotionResult:
         """Estimates the motion since the previous frame.
 
         Args:
@@ -80,9 +75,7 @@ class CameraMotion:
         """
         frame_height, frame_width = frame.shape[:2]
         scale = min(1.0, WORK_WIDTH_PX / frame_width)
-        small_frame = cv2.resize(
-            frame, (round(frame_width * scale), round(frame_height * scale)), interpolation=cv2.INTER_AREA
-        )
+        small_frame = cv2.resize(frame, (round(frame_width * scale), round(frame_height * scale)), interpolation=cv2.INTER_AREA)
         gray = cv2.cvtColor(small_frame, cv2.COLOR_BGR2GRAY)
         histogram = self._compute_histogram(small_frame)
 
@@ -97,7 +90,7 @@ class CameraMotion:
         self._previous_points = cv2.goodFeaturesToTrack(gray, mask=mask, **self._feature_params)
         return result
 
-    def _compare_with_previous_frame(self, gray: np.ndarray, histogram: np.ndarray, scale: float) -> MotionResult:
+    def _compare_with_previous_frame(self, gray:np.ndarray, histogram:np.ndarray, scale:float) -> MotionResult:
         """Measures the motion and decides whether this frame is a cut."""
         histogram_similarity = float(cv2.compareHist(self._previous_histogram, histogram, cv2.HISTCMP_CORREL))
         small_warp, inlier_ratio = self._fit_warp(gray)
@@ -115,7 +108,7 @@ class CameraMotion:
         is_cut = colors_changed or motion_model_failed
         return MotionResult(identity_warp() if is_cut else warp, is_cut)
 
-    def _fit_warp(self, gray: np.ndarray) -> tuple[np.ndarray | None, float]:
+    def _fit_warp(self, gray:np.ndarray) -> tuple[np.ndarray | None, float]:
         """Tracks the features into this frame and fits a similarity transform with RANSAC.
 
         Returns:
@@ -152,7 +145,7 @@ class CameraMotion:
         # The ratio is relative to all features we tried to track, not just the ones optical flow followed.
         return warp, float(inlier_mask.sum()) / len(points)
 
-    def _measure_residual(self, small_warp: np.ndarray, gray: np.ndarray) -> float:
+    def _measure_residual(self, small_warp:np.ndarray, gray:np.ndarray) -> float:
         """Mean pixel difference (0-255) between the motion-compensated previous frame and this one."""
         height, width = gray.shape
         compensated = cv2.warpAffine(self._previous_gray, small_warp, (width, height), borderMode=cv2.BORDER_REFLECT)
@@ -161,9 +154,7 @@ class CameraMotion:
         return float(difference[margin:-margin, margin:-margin].mean())
 
     @staticmethod
-    def _build_background_mask(
-        shape: tuple[int, int], vehicle_boxes: np.ndarray | None, scale: float
-    ) -> np.ndarray:
+    def _build_background_mask(shape:tuple[int, int], vehicle_boxes:np.ndarray | None, scale:float) -> np.ndarray:
         """A mask that is 255 on background and 0 on (padded) vehicle boxes."""
         mask = np.full(shape, 255, dtype=np.uint8)
         if vehicle_boxes is not None:
@@ -174,7 +165,7 @@ class CameraMotion:
         return mask
 
     @staticmethod
-    def _compute_histogram(small_frame: np.ndarray) -> np.ndarray:
+    def _compute_histogram(small_frame:np.ndarray) -> np.ndarray:
         """A normalized HSV color histogram, used to spot hard cuts."""
         hsv = cv2.cvtColor(small_frame, cv2.COLOR_BGR2HSV)
         histogram = cv2.calcHist([hsv], [0, 1, 2], None, HISTOGRAM_BINS, HISTOGRAM_RANGES)

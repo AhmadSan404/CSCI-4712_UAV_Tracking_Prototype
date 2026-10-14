@@ -7,7 +7,7 @@ from tkinter import filedialog, messagebox, ttk
 
 from src.camera_scanner import list_cameras
 from src.detection.model_catalog import list_model_choices
-from src.menu.menu_variables import NO_AERIAL_LABEL, OTHER_VIDEO_LABEL, MenuVariables
+from src.menu.menu_variables import NO_AERIAL_LABEL, NO_MAIN_LABEL, OTHER_VIDEO_LABEL, MenuVariables
 from src.menu.tracker_settings import (
     CONFIDENCE_STEP,
     DEVICE_CHOICES,
@@ -16,6 +16,7 @@ from src.menu.tracker_settings import (
     MAX_IMAGE_SIZE_PX,
     MIN_CONFIDENCE,
     MIN_IMAGE_SIZE_PX,
+    NO_MODEL,
     SOURCE_STREAM,
     SOURCE_VIDEO,
     TrackerSettings,
@@ -64,7 +65,7 @@ class MenuWindow:
         self._build_layout()
         self._variables.apply(settings)
         self._scan_cameras()
-        self._update_source_fields()
+        self._update_field_states()
 
     def show(self) -> MenuResult | None:
         """Runs the menu; returns the chosen settings, or None if the user quit."""
@@ -80,7 +81,7 @@ class MenuWindow:
         holder = self._add_row("Source")
         for text, value in (("Video file", SOURCE_VIDEO), ("Live stream (camera)", SOURCE_STREAM)):
             ttk.Radiobutton(
-                holder, text=text, value=value, variable=variables.source_type, command=self._update_source_fields
+                holder, text=text, value=value, variable=variables.source_type, command=self._update_field_states
             ).pack(side="left", padx=(0, PADDING_PX * 2))
 
         holder = self._add_row("Video")
@@ -89,7 +90,7 @@ class MenuWindow:
             state="readonly", width=MODEL_BOX_WIDTH_CHARS,
         )
         video_box.pack(anchor="w", pady=2)
-        video_box.bind("<<ComboboxSelected>>", lambda _event: self._update_source_fields())
+        video_box.bind("<<ComboboxSelected>>", lambda _event: self._update_field_states())
         path_row = ttk.Frame(holder)
         path_row.pack(anchor="w", pady=2)
         self._video_entry = ttk.Entry(path_row, textvariable=variables.video_path, width=VIDEO_ENTRY_WIDTH_CHARS)
@@ -105,7 +106,8 @@ class MenuWindow:
         self._scan_button = ttk.Button(holder, text="Scan cameras", command=self._scan_cameras)
         self._scan_button.pack(side="left", padx=PADDING_PX)
 
-        self._add_model_dropdown("Main model", variables.main_model_label, main_labels)
+        main_box = self._add_model_dropdown("Main model", variables.main_model_label, [NO_MAIN_LABEL] + main_labels)
+        main_box.bind("<<ComboboxSelected>>", lambda _event: self._update_field_states())
         self._add_image_size("Main model size (px)", variables.main_image_size_px)
         self._add_model_dropdown("Aerial model", variables.aerial_model_label, [NO_AERIAL_LABEL] + aerial_labels)
         self._add_image_size("Aerial model size (px)", variables.aerial_image_size_px)
@@ -120,7 +122,8 @@ class MenuWindow:
         for name, flag in variables.class_flags.items():
             ttk.Checkbutton(holder, text=name, variable=flag).pack(side="left", padx=PADDING_PX)
 
-        ttk.Checkbutton(self._add_row(""), text="Track people", variable=variables.track_people).pack(anchor="w")
+        self._track_people_check = ttk.Checkbutton(self._add_row(""), text="Track people", variable=variables.track_people)
+        self._track_people_check.pack(anchor="w")
         ttk.Checkbutton(self._add_row(""), text="Show trails", variable=variables.show_trails).pack(anchor="w")
         speed_text = "Start at max speed (uncapped)"
         self._max_speed_check = ttk.Checkbutton(
@@ -144,11 +147,12 @@ class MenuWindow:
         holder.grid(row=row, column=1, sticky="w")
         return holder
 
-    def _add_model_dropdown(self, label_text: str, variable: tk.StringVar, labels: list[str]) -> None:
+    def _add_model_dropdown(self, label_text: str, variable: tk.StringVar, labels: list[str]) -> ttk.Combobox:
         """A read-only dropdown of model labels."""
         box = ttk.Combobox(self._add_row(label_text), textvariable=variable, values=labels, state="readonly")
         box.config(width=MODEL_BOX_WIDTH_CHARS)
         box.pack(anchor="w", pady=2)
+        return box
 
     def _add_image_size(self, label_text: str, variable: tk.IntVar) -> None:
         """A spinbox for a model's input size."""
@@ -165,8 +169,9 @@ class MenuWindow:
             ttk.Button(buttons, text=text, command=command).pack(side="left", padx=PADDING_PX)
         buttons.grid(row=self._row_count, column=0, columnspan=2, pady=(12, 0))
 
-    def _update_source_fields(self) -> None:
-        """Grays out the controls that do not apply: the video ones while streaming, the camera ones otherwise.
+    def _update_field_states(self) -> None:
+        """Grays out the controls that do not apply: the video ones while streaming, the camera ones otherwise, and
+        'Track people' while the main model is off (the aerial model has no person class).
 
         The path box and Browse button are only enabled while 'Other...' is selected in the video dropdown.
         """
@@ -179,6 +184,8 @@ class MenuWindow:
         self._camera_box.config(state="readonly" if is_stream else "disabled")
         self._scan_button.config(state="normal" if is_stream else "disabled")
         self._max_speed_check.config(state="disabled" if is_stream else "normal")  # a live source cannot speed up
+        has_main_model = variables.main_model_label.get() != NO_MAIN_LABEL
+        self._track_people_check.config(state="normal" if has_main_model else "disabled")
 
     def _scan_cameras(self) -> None:
         """Lists the connected cameras in the camera dropdown."""
@@ -208,6 +215,9 @@ class MenuWindow:
         if settings.source_type == SOURCE_VIDEO and not Path(settings.video_path).is_file():
             messagebox.showerror("No video", "Please choose a video file that exists.", parent=self._root)
             return
+        if settings.main_model_name == NO_MODEL and settings.aerial_model_name == NO_MODEL:
+            messagebox.showerror("No model", "Please choose a main model, an aerial model, or both.", parent=self._root)
+            return
         if not settings.selected_class_names:
             messagebox.showerror("No classes", "Please tick at least one class to detect.", parent=self._root)
             return
@@ -217,7 +227,7 @@ class MenuWindow:
     def _reset(self) -> None:
         """Restores every option to its default."""
         self._variables.apply(TrackerSettings())
-        self._update_source_fields()
+        self._update_field_states()
 
     def _quit(self) -> None:
         """Closes the menu without starting."""

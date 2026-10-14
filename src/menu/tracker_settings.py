@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 
 from src.detection.vehicle_types import VEHICLE_ONLY_CLASSES
 
-NO_AERIAL_MODEL = "none"  # the value of `aerial_model_name` when only the main model should run
+NO_MODEL = "none"  # the value of a model name when that model is not used (at least one model must be)
 DEVICE_CHOICES = ("auto", "cpu", "gpu")
 SOURCE_VIDEO = "video"  # play a video file
 SOURCE_STREAM = "stream"  # read a live camera, such as OBS Virtual Camera

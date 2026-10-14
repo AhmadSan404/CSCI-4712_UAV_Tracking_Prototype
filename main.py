@@ -10,7 +10,7 @@ from src.detection.model_catalog import resolve_weights_path
 from src.detection.vehicle_types import VehicleClass, find_vehicle_class
 from src.menu.menu_window import MenuResult, show_error_dialog, show_menu
 from src.menu.settings_storage import load_settings, save_settings
-from src.menu.tracker_settings import NO_AERIAL_MODEL, TrackerSettings
+from src.menu.tracker_settings import NO_MODEL, TrackerSettings
 
 
 def enable_windows_dpi_awareness() -> None:
@@ -45,18 +45,19 @@ def load_detector(settings: TrackerSettings, cache: DetectorCache) -> tuple[obje
     # Importing the detector imports torch and ultralytics, which is slow, so it waits until after Start.
     from src.detection.vehicle_detector import VehicleDetector
 
-    main_path = resolve_weights_path(settings.main_model_name)
-    uses_aerial = settings.aerial_model_name != NO_AERIAL_MODEL
+    uses_main = settings.main_model_name != NO_MODEL
+    uses_aerial = settings.aerial_model_name != NO_MODEL
+    main_path = resolve_weights_path(settings.main_model_name) if uses_main else None
     aerial_path = resolve_weights_path(settings.aerial_model_name) if uses_aerial else None
     classes = [find_vehicle_class(name) for name in settings.selected_class_names]
-    if settings.track_people:
+    if settings.track_people and uses_main:  # the aerial model has no person class
         classes.append(VehicleClass.PERSON)
     key = (main_path, settings.main_image_size_px, aerial_path, settings.aerial_image_size_px,
            settings.device_choice, tuple(c.value for c in classes))
 
     model_info = {"main_weights": main_path, "aerial_weights": aerial_path, "was_cached": cache.key == key}
     if cache.detector is None or cache.key != key:
-        model_info["was_downloaded"] = not Path(main_path).exists() or (uses_aerial and not Path(aerial_path).exists())
+        model_info["was_downloaded"] = any(path and not Path(path).exists() for path in (main_path, aerial_path))
         print("Loading models" + (" (downloading first)..." if model_info["was_downloaded"] else "..."))
         started = time.perf_counter()
         cache.detector = None  # drop the old models first so both are never in memory at once

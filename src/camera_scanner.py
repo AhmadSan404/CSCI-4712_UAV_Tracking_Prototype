@@ -1,5 +1,4 @@
 """Finding the cameras (webcams, OBS Virtual Camera) that can be used as a live source."""
-
 from dataclasses import dataclass
 
 import cv2
@@ -25,11 +24,9 @@ def list_cameras() -> list[CameraInfo]:
     except (ImportError, OSError):
         return _probe_cameras()
 
-
-def find_camera_index(name: str) -> int | None:
+def find_camera_index(name:str) -> int | None:
     """The current number of the camera with this name, or None if it is not connected."""
     return next((camera.index for camera in list_cameras() if camera.name == name), None)
-
 
 def _probe_cameras() -> list[CameraInfo]:
     """Tries to open the first few camera numbers and keeps the ones that open."""

@@ -7,7 +7,6 @@ For every video frame:
 4. choose the target        (tracking/target_selector.py)
 5. draw the result and handle keys and clicks (display/)
 """
-
 import dataclasses
 import time
 from pathlib import Path
@@ -51,9 +50,7 @@ END_REASON_ERROR = "error"
 class TrackingSession:
     """One run over one video or live stream. Create it, then call `run`; live key changes are written into `settings`."""
 
-    def __init__(
-        self, settings: TrackerSettings, detector: VehicleDetector, screen_size: tuple[int, int], model_info: dict
-    ) -> None:
+    def __init__(self, settings:TrackerSettings, detector:VehicleDetector, screen_size:tuple[int, int], model_info:dict) -> None:
         self.settings = settings
         self.detector = detector
         self.model_info = model_info
@@ -168,7 +165,7 @@ class TrackingSession:
         self._process_frame(*item)
         return True
 
-    def _process_frame(self, frame_index: int, frame: np.ndarray) -> None:
+    def _process_frame(self, frame_index:int, frame:np.ndarray) -> None:
         """Detects, measures camera motion, tracks, and updates trails for one new frame."""
         self.frame_index = frame_index
         self.frame_shape = frame.shape
@@ -207,7 +204,7 @@ class TrackingSession:
 
     # ------------------------------------------------------------------ pacing and logging
 
-    def _record_shown_frame(self, work_seconds: float) -> None:
+    def _record_shown_frame(self, work_seconds:float) -> None:
         """Updates the FPS counter and logs the frame; the first frame after a reset has no interval."""
         interval = self.pacer.mark_frame_shown()
         self.fps_counter.tick()
@@ -279,7 +276,7 @@ class TrackingSession:
             if track is not None:
                 self.selector.lock(track.track_id)
 
-    def _handle_key(self, key: int) -> bool:
+    def _handle_key(self, key:int) -> bool:
         """Performs the action bound to a key. Returns False if the user asked to go back to the menu."""
         if key == ord("q"):
             return False

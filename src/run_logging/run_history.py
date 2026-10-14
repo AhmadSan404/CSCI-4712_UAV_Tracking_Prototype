@@ -1,5 +1,4 @@
 """The run-history CSV: one summary row per run, for comparing runs."""
-
 import csv
 
 from src.project_paths import LOGS_DIR
@@ -17,7 +16,7 @@ class RunHistory:
     """Appends one row per run to `logs/run_history.csv`."""
 
     @staticmethod
-    def append_row(report: dict) -> None:
+    def append_row(report:dict) -> None:
         """Adds a summary of a finished run's report, writing the header first if the file is new."""
         history_path = LOGS_DIR / HISTORY_FILE_NAME
         is_new_file = not history_path.exists()
@@ -28,7 +27,7 @@ class RunHistory:
             writer.writerow(RunHistory._build_row(report))
 
     @staticmethod
-    def _build_row(report: dict) -> dict:
+    def _build_row(report:dict) -> dict:
         """Picks the key columns out of a run report."""
         settings = report["settings"]["used"]
         run, fps = report["run"], report["fps"]
