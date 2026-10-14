@@ -1,4 +1,4 @@
-# Drone Car Tracker (simple_remake)
+# Drone Car Tracker
 
 Detects vehicles in drone footage with two YOLO models, tracks every vehicle with BoT-SORT (each car keeps its ID,
 even when YOLO misses it for a moment), and follows one car as the **target**. The target is chosen automatically, or
